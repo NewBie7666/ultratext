@@ -1,0 +1,2 @@
+安装包运行 npm run build:win 
+ 独立包运行 npm run build:win:portable 

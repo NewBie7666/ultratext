@@ -1,0 +1,31 @@
+/* 表格 BubbleMenu 样式（M3.D） */
+.table-bubble-menu-container {
+  display: flex;
+  background-color: #f5f5f5;
+  color: #333;
+  padding: 4px;
+  border-radius: 8px;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #ccc;
+}
+.table-bubble-menu-container button {
+  background: none;
+  border: 1px solid transparent;
+  color: #333;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.table-bubble-menu-container button:hover {
+  background-color: #e0e0e0;
+  border-color: #bbb;
+}
+.table-bubble-menu-container button.danger-button {
+  color: #e03131;
+}
+.table-bubble-menu-container button.danger-button:hover {
+  background-color: #fff5f5;
+  border-color: #e03131;
+}

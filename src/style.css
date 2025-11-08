@@ -1,0 +1,171 @@
+html, body, #root { height: 100%; width: 100%; margin: 0; }
+/* 根容器按列布局，允许页面整体滚动 */
+.app { display: flex; flex-direction: column; min-height: 100vh; width: 100%; align-items: stretch; justify-content: flex-start; background: var(--mantine-color-body); color: var(--mantine-color-text); padding: 0; }
+/* 编辑区满宽，去除内部滚动与网格约束，页面滚动为主 */
+.editor { flex: 1 1 auto; width: 100%; max-width: none; background: var(--mantine-color-body); border: 1px solid var(--mantine-color-border); border-radius: 8px; padding: 16px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+
+/* 表格样式（Tiptap 官方建议） */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;         /* 还原 Tiptap 官方建议 */
+  margin: 0;
+  overflow: hidden;
+}
+.ProseMirror td, .ProseMirror th {
+  min-width: 1em;
+  border: 1px solid #ccc;
+  padding: 3px 5px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+.ProseMirror th {
+  font-weight: bold;
+  text-align: left;
+  background-color: #f1f3f5;
+}
+
+/* 列宽拖拽指示（ProseMirror tables） */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+.ProseMirror.resize-cursor {
+  cursor: ew-resize; /* 使用通用黑色左右拖拽指针，避免白色 */
+}
+
+/* Gapcursor（间隙光标）：在非文本节点之间显示细竖线插入指示 */
+.ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+.ProseMirror-gapcursor:after {
+  content: "";
+  display: block;
+  position: absolute;
+  border-left: 1px solid #000;
+  margin-left: -1px;
+  top: -10px;
+  left: 0;
+  height: 20px;
+}
+.ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+
+/* 给编辑区域底部留一点空白，便于点击出现间隙光标 */
+.ProseMirror {
+  position: relative;
+  padding-bottom: 16px;
+  /* 使用主题变量保证亮/暗色模式下可见性 */
+  caret-color: var(--mantine-color-text);
+  color: var(--mantine-color-text);
+  line-height: 1.35; /* 缩小基础行距 */
+}
+
+/* 行首（空段落）可见性修复：
+   - 在 Windows/Electron 上，空段落可能高度塌陷导致看不到插入光标。
+   - 为常见文本块设置最小高度，确保行首也有可见基线。
+   - 同时在子块上显式继承 caret-color，以避免某些打包/优化后样式被清除。 */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6,
+.ProseMirror li,
+.ProseMirror pre,
+.ProseMirror blockquote,
+.ProseMirror code {
+  caret-color: var(--mantine-color-text);
+  color: var(--mantine-color-text);
+}
+
+/* 段落上下间距：更紧凑的视觉间距 */
+.ProseMirror p { margin: 0.25em 0; }
+
+.ProseMirror p:empty,
+.ProseMirror h1:empty,
+.ProseMirror h2:empty,
+.ProseMirror h3:empty,
+.ProseMirror h4:empty,
+.ProseMirror h5:empty,
+.ProseMirror h6:empty,
+.ProseMirror li:empty,
+.ProseMirror pre:empty,
+.ProseMirror blockquote:empty {
+  min-height: 1.1em; /* 缩小空段落高度但保持光标可见 */
+}
+
+/* 占位提示：当段落为空时显示淡灰色提示文本（不影响光标与点击） */
+.ProseMirror p.is-editor-empty:first-child::before,
+.ProseMirror p.is-empty::before {
+  content: attr(data-placeholder);
+  color: #9aa0a6;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Iframe 嵌入：保持 16:9 比例并美化边框 */
+.ProseMirror iframe {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--mantine-color-border);
+  border-radius: 4px;
+  margin: 1em 0;
+}
+
+/* 可缩放图片的简易控制条样式 */
+.resizable-image-wrapper[data-selected='true'] img {
+  outline: 2px solid #99c2ff;
+}
+.resizable-image-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--mantine-color-border);
+  border-radius: 6px;
+  background: var(--mantine-color-default);
+}
+
+.resizable-image-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--mantine-color-border);
+  border-radius: 6px;
+  background: var(--mantine-color-default);
+}
+.ProseMirror:focus { caret-color: var(--mantine-color-text); }
+
+/* 文件状态栏：显示当前打开文件路径 */
+.file-status-bar { width: 100%; margin-top: 8px; color: var(--mantine-color-dimmed); font-size: 12px; user-select: text; padding: 6px 10px; }
+
+/* 暗色模式表格表头与分割线优化 */
+.ProseMirror th { background-color: var(--mantine-color-default); }
+.ProseMirror-gapcursor:after { border-left-color: var(--mantine-color-text); }
+
+/* 任务列表：已勾选项文字变灰（覆盖段落默认颜色） */
+.ProseMirror li[data-checked="true"] p {
+  color: var(--mantine-color-dimmed) !important;
+}
+/* 任务列表：已勾选项添加删除线（段落） */
+.ProseMirror li[data-checked="true"] p {
+  text-decoration: line-through !important;
+}

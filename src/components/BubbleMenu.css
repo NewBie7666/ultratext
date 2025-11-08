@@ -1,0 +1,40 @@
+/* 链接编辑 BubbleMenu 样式（与表格菜单区分） */
+.bubble-menu-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.bubble-menu-container .link-url {
+  max-width: 240px;
+  font-size: 12px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bubble-menu-container button {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.bubble-menu-container button:hover {
+  background: #eee;
+}
+
+/* 链接编辑输入框 */
+.bubble-menu-input {
+  min-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
