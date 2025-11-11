@@ -276,20 +276,24 @@ function App() {
       return;
     }
     try {
-      const fmt = currentFormat || detectFormatFromPath(currentFilePath);
-      const content = getContentByFormat(fmt);
+      // 不基于当前格式，而是基于用户选择的目标路径扩展名来决定保存格式
+      // 以修复：另存为 .md 时写入 JSON 的问题
       // 如果有 showSaveDialog，则先选路径；否则传 null 由主进程弹窗。
       let targetPath: string | null = null;
       if (typeof window.api.showSaveDialog === 'function') {
-        const pick = await window.api.showSaveDialog(currentFilePath ?? undefined, fmt);
+        // 传入当前格式仅用于对话框初始过滤，但最终以用户选择的扩展名为准
+        const pick = await window.api.showSaveDialog(currentFilePath ?? undefined, currentFormat || detectFormatFromPath(currentFilePath));
         if (pick?.canceled) return; if (pick?.error) { alert(`选择保存位置失败: ${pick.error}`); return; }
         targetPath = pick?.filePath ?? null;
       }
-      const resp = await window.api.saveFile({ suggestedPath: targetPath, content, preferredFormat: fmt });
+      // 基于目标路径判定最终保存格式
+      const finalFmt = detectFormatFromPath(targetPath ?? undefined);
+      const content = getContentByFormat(finalFmt);
+      const resp = await window.api.saveFile({ suggestedPath: targetPath, content, preferredFormat: finalFmt });
       if (!resp || resp.canceled) return;
       if (resp.error) { alert(`保存失败: ${resp.error}`); return; }
       setCurrentFilePath(resp.filePath || currentFilePath);
-      setCurrentFormat(fmt);
+      setCurrentFormat(finalFmt);
       setIsDirty(false);
     } catch (err) {
       alert(`保存错误: ${String(err)}`);
