@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { createMenu } from './menu.js';
 import path from 'path';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 
 // 某些显卡/驱动在 Electron 下会出现插入光标渲染异常（不显示或闪烁异常）
 // 禁用硬件加速可显著缓解此类问题
@@ -41,6 +41,19 @@ function createWindow() {
         console.log('[electron] window.api present:', present);
       })
       .catch(err => console.error('[electron] window.api check error:', err));
+
+    // (M10) If started with an associated file (e.g. double-click a .tiptap),
+    // read its content and notify renderer to load it.
+    try {
+      const args = (process.argv || []).slice(1).filter(a => !!a && !a.startsWith('-'));
+      const candidate = args.find(a => /\.(tiptap|json|md|markdown|txt)$/i.test(a));
+      if (candidate && existsSync(candidate)) {
+        const content = readFileSync(candidate, 'utf-8');
+        win.webContents.send('ipc-initial-open-file', { filePath: candidate, content });
+      }
+    } catch (e) {
+      console.warn('[electron] initial file open failed:', e);
+    }
   });
 
   // 当渲染进程通过 beforeunload 阻止关闭时，允许用户确认并继续关闭

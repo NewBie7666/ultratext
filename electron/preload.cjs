@@ -14,4 +14,13 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('ipc-menu', handler);
     return () => ipcRenderer.removeListener('ipc-menu', handler);
   },
+  // (M10) Listen for initial file open payload from main process
+  onInitialOpenFile: (callback) => {
+    if (typeof callback !== 'function') return () => {};
+    const handler = (_event, payload) => {
+      try { callback(payload); } catch (e) { /* noop */ }
+    };
+    ipcRenderer.on('ipc-initial-open-file', handler);
+    return () => ipcRenderer.removeListener('ipc-initial-open-file', handler);
+  },
 });

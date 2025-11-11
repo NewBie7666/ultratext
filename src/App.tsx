@@ -195,6 +195,42 @@ function App() {
     }
   };
 
+  // (M10) 接收主进程发送的“启动时打开的文件”，并加载到编辑器
+  React.useEffect(() => {
+    const hasElectronApi = typeof window !== 'undefined' && !!(window as any).api;
+    if (!hasElectronApi || typeof (window as any).api.onInitialOpenFile !== 'function') return;
+    const unsubscribe = (window as any).api.onInitialOpenFile((payload: { filePath: string; content: string }) => {
+      try {
+        const { filePath, content } = payload || ({} as any);
+        const fmt = detectFormatFromPath(filePath);
+        let contentForEditor: any = content || '';
+        if (fmt === 'json') {
+          try {
+            contentForEditor = JSON.parse(content);
+          } catch {
+            alert('JSON 文件格式不正确');
+            return;
+          }
+        } else if (fmt === 'md') {
+          contentForEditor = mdToHtml(content);
+        } else {
+          const safe = escapeHtml(content);
+          contentForEditor = `<p>${safe.replace(/\n/g, '<br>')}</p>`;
+        }
+        editor?.commands.setContent(contentForEditor, false);
+        editor?.commands.focus();
+        setCurrentFilePath(filePath || null);
+        setCurrentFormat(fmt);
+        setIsDirty(false);
+      } catch (e) {
+        alert(`启动时加载文件失败: ${String(e)}`);
+      }
+    });
+    return () => {
+      try { typeof unsubscribe === 'function' && unsubscribe(); } catch {}
+    };
+  }, [editor]);
+
   const getContentByFormat = (fmt: FileFormat): string => {
     if (!editor) return '';
     if (fmt === 'json') {
