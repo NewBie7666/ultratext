@@ -1,6 +1,6 @@
-# UltraText 帮助文档（M1–M7.6）
+# UltraText 帮助文档（含 M10 Windows 集成）
 
-本帮助文档汇总了当前项目的主要功能与快捷键，涵盖文件操作、编辑与格式化、查找/替换、表格与链接媒体、数学公式、主题与外观等。内容基于代码实现与内置菜单快捷键，便于上手与查阅。
+本帮助文档汇总项目主要功能与快捷键，并新增 M10 对 Windows Shell 的原生集成说明：文件关联、右键“新建 UltraText 文档”、安装与打包步骤。
 
 ## 概览
 - 支持三种文件格式：`JSON`、`Markdown (MD)`、`Text (TXT)`。
@@ -20,6 +20,8 @@
   - 打开时自动识别扩展名并转换为编辑器内容：`JSON`（结构）、`MD`（转换为 HTML）、`TXT`（按行转 `<br>`）。
   - 保存时根据当前文件格式输出内容：`JSON`（`getJSON()`）、`MD`（HTML 简转 Markdown）、`TXT`（纯文本）。
   - 拖拽本地图片到编辑器自动插入（支持多图）。
+ - 启动时打开文件：在资源管理器双击 `.tiptap/.json/.md/.txt` 文件时，应用会读取文件并在编辑器中载入（M10）。
+ - 空白启动：应用启动时不再注入默认文本，编辑器为空（占位提示“在此输入…”）。
 
 ## 查找 / 替换
 - 打开查找：`Ctrl+F`
@@ -96,4 +98,93 @@
 - 编辑格式：`Ctrl+B`（加粗）、`Ctrl+I`（斜体）、`Ctrl+U`（下划线）、`Ctrl+Shift+X`（删除线）
 - 面板内辅助：`Enter`（下一处 / 应用）、`Shift+Enter`（上一处）、`Esc`（关闭）
 
-—— 如需在应用内弹出“帮助 / 快捷键”界面，可后续在原生菜单中添加对应命令，或集成一个基于 Mantine 的 `HelpModal`（参考 `m7.6help.md`）。
+—— 如需在应用内弹出“帮助 / 快捷键”界面，可在原生菜单中使用“View Shortcuts / Help”，或集成 Mantine 的 `HelpModal`。
+
+---
+
+## M10：Windows 原生集成
+
+本版本将 UltraText 与 Windows Shell 深度集成，提供以下能力：
+
+- 文件关联：`.tiptap`（UltraText Rich Text Document）
+- 右键“新建”菜单：在桌面或任意文件夹右键 → 新建(N) → UltraText Document
+- 双击打开：双击 `.tiptap` 文件即用 UltraText 打开并载入内容
+
+### 文件格式说明
+
+- `.tiptap`：JSON 结构的富文本，最小可用空白文档示例：
+
+  ```json
+  {
+    "type": "doc",
+    "content": [
+      { "type": "paragraph" }
+    ]
+  }
+  ```
+
+- `.md`：打开时转换为 HTML 显示；保存时对 HTML 进行“简转换”为 Markdown
+- `.txt`：打开时按行转换为 `<br>`；保存为纯文本
+
+### 安装与“新建文档”原理
+
+- 安装包会将模板文件 `empty.tiptap` 复制到安装目录，并在注册表写入：
+  - `HKCR\.tiptap` → `UltraText.tiptap`
+  - `HKCR\UltraText.tiptap\DefaultIcon` → 指向应用图标
+  - `HKCR\UltraText.tiptap\shell\open\command` → 双击时调用 `UltraText.exe "%1"`
+  - `HKCR\.tiptap\ShellNew\FileName` → 指向安装目录的 `empty.tiptap`
+
+### 使用与验证
+
+1. 运行安装包并完成安装
+2. 在桌面右键 → 新建(N) → UltraText Document（出现 `.tiptap` 文件）
+3. 双击该文件，应用启动并载入一个空白段落（来自模板）
+
+---
+
+## 打包与发布（开发者）
+
+### 打包（Windows）
+
+- 前提：`build/icon.ico` 已存在（256×256）
+- 命令：
+
+  ```bash
+  npm run build:win
+  ```
+
+- 产物：`release/UltraText-<version>-Setup-x64.exe`
+
+### GitHub 推送
+
+1. 更新内容后提交：
+
+   ```bash
+   git add -A
+   git commit -m "docs(help): 更新帮助文档，加入 M10 指南"
+   git push -u origin main
+   ```
+
+2. `.gitignore` 已忽略 `release/`，防止安装包推到仓库
+
+### 可选：创建 Release 并上传安装包
+
+```bash
+gh release create v0.1.0 \
+  --title "UltraText v0.1.0 (M10)" \
+  --notes "Windows Shell 集成：右键新建、文件关联、空白启动" \
+  release/UltraText-0.1.0-Setup-x64.exe
+```
+
+---
+
+## 故障排查
+
+- 推送被拒绝：远程有更新 → `git pull --rebase origin main` 后再推送
+- 行尾提示：出现 LF/CRLF 警告属正常，可通过 `.gitattributes` 或 `core.autocrlf` 调整
+- Windows 路径过长：`git config --system core.longpaths true`
+- 打包失败找不到模板：确保 `build/templates/empty.tiptap` 存在；NSIS 使用 `BUILD_RESOURCES_DIR` 指向 `build/`
+
+---
+
+祝使用愉快！若有问题或建议，欢迎在 GitHub Issue 反馈。
